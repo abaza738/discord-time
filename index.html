@@ -1,0 +1,392 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <!-- Meta tags for SEO -->
+
+    <meta name="title" content="Discord Time - Discord Timestamp Converter" />
+    <meta
+      name="description"
+      content="A simple tool to convert and display Discord timestamps."
+    />
+    <meta
+      name="keywords"
+      content="Discord, timestamps, converter, time, tool"
+    />
+    <meta name="author" content="Abaza" />
+
+    <!-- Canonical URL -->
+    <link rel="canonical" href="https://discord-time.xyz/" />
+
+    <!-- Open Graph for Social Media -->
+    <meta
+      property="og:title"
+      content="Discord Time - Discord Timestamp Converter"
+    />
+    <meta
+      property="og:description"
+      content="A simple tool to convert and display Discord timestamps."
+    />
+    <meta property="og:url" content="https://discord-time.xyz/" />
+    <meta property="og:type" content="website" />
+
+    <!-- Twitter Card -->
+    <meta
+      name="twitter:title"
+      content="Discord Time - Discord Timestamp Converter"
+    />
+    <meta
+      name="twitter:description"
+      content="A simple tool to convert and display Discord timestamps."
+    />
+    <meta name="twitter:url" content="https://discord-time.xyz/" />
+
+    <meta name="robots" content="index, follow" />
+
+    <title>Discord Time</title>
+    <link
+      rel="icon"
+      type="image/svg+xml"
+      href="https://api.iconify.design/logos:discord-icon.svg?color=%23888888"
+    />
+    <link
+      href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:ital,wght@0,100..800;1,100..800&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      * {
+        margin: 0;
+        box-sizing: border-box;
+        flex-shrink: 0;
+        font-family: "JetBrains Mono", monospace;
+
+        /* Discord Blurple (current) */
+        --discord-blurple: #5565ee; /* rgb(85,101,238) */
+
+        /* Discord Grey ("Greyple") */
+        --discord-greyple: #323339; /* rgb(50,51,57) */
+
+        --discord-not-quite-black: #2c2d32; /* rgb(44,45,50) */
+
+        /* Useful alternates:
+          - older Blurple: #7289DA
+          - dark background "Not Quite Black": #2F3136 (rgb(47,49,54)) */
+      }
+
+      html {
+        height: 100vh;
+        display: flex;
+        background-color: var(--discord-not-quite-black);
+      }
+
+      body {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+
+        color: white;
+        font-size: 16px;
+        text-align: center;
+        line-height: 1.5;
+      }
+
+      a {
+        color: inherit;
+        text-decoration: none;
+
+        &:hover {
+          color: white;
+        }
+      }
+
+      main {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        gap: 20px;
+        padding: 20px;
+        margin-inline: auto;
+        width: 100%;
+        max-width: 600px;
+        background-color: var(--discord-greyple);
+        border-left: 3px solid rgb(0, 100, 100);
+        border-right: 3px solid rgb(0, 100, 100);
+      }
+
+      .input-row {
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+      }
+
+      label[for="datetime"] {
+        font-size: 13px;
+        color: rgba(255, 255, 255, 0.85);
+        font-weight: 600;
+      }
+
+      #datetime {
+        appearance: none;
+        -webkit-appearance: none;
+        -moz-appearance: none;
+        width: 100%;
+        padding: 10px 12px;
+        border-radius: 6px;
+        border: 1px solid rgba(255, 255, 255, 0.06);
+        background-color: rgba(255, 255, 255, 0.1);
+        color: white;
+        font-size: 15px;
+        outline: none;
+        transition: all 150ms ease-in-out;
+        box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.02);
+      }
+
+      #datetime::-webkit-calendar-picker-indicator {
+        filter: invert(1) opacity(0.9);
+        cursor: pointer;
+      }
+
+      .description {
+        font-size: 12px;
+        color: rgba(255, 255, 255, 0.85);
+        margin-top: 10px;
+      }
+
+      #buttons {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+      }
+
+      .time-button {
+        cursor: pointer;
+        outline: none;
+        border: none;
+        border-radius: 4px;
+        padding: 8px;
+        background-color: var(--discord-blurple);
+        color: white;
+        font-weight: bold;
+        text-transform: uppercase;
+        transition: all 150ms linear;
+
+        &:hover {
+          background-color: rgb(100, 135, 205);
+        }
+
+        &:active {
+          background-color: rgb(70, 100, 170);
+        }
+      }
+
+      footer {
+        font-size: 12px;
+        color: rgba(255, 255, 255, 0.6);
+        margin-top: auto;
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <h1>Discord Time</h1>
+      <div class="input-row">
+        <label for="datetime">Select date & time (Your Local Time)</label>
+        <input type="datetime-local" name="datetime" id="datetime" />
+      </div>
+
+      <p class="description">
+        Click a button to copy the Discord timestamp format to your clipboard!
+      </p>
+      <div id="buttons"></div>
+      <footer>
+        Made by
+        <a href="https://abaza.dev" target="_blank" rel="noopener noreferrer">
+          @abaza738
+        </a>
+      </footer>
+    </main>
+
+    <script>
+      const datetimeInput = document.getElementById("datetime");
+
+      datetimeInput?.addEventListener("change", (e) => {
+        const parsed = new Date(e.target.value);
+        selectedDateTime = Math.floor(+parsed / 1000);
+        updateButtons();
+      });
+
+      datetimeInput.value = new Date().toISOString().slice(0, 16);
+      let selectedDateTime = Math.floor(+Date.now() / 1000);
+
+      const pad = (n) => String(n).padStart(2, "0");
+      const monthNames = [
+        "January",
+        "February",
+        "March",
+        "April",
+        "May",
+        "June",
+        "July",
+        "August",
+        "September",
+        "October",
+        "November",
+        "December",
+      ];
+      const weekdayNames = [
+        "Sunday",
+        "Monday",
+        "Tuesday",
+        "Wednesday",
+        "Thursday",
+        "Friday",
+        "Saturday",
+      ];
+
+      const times = [
+        {
+          format: "f",
+          label: "Long Date + Short Time",
+          formatter: (timestamp) => {
+            const d = new Date(timestamp);
+            const day = pad(d.getDate());
+            const month = monthNames[d.getMonth()];
+            const year = d.getFullYear();
+            const hour = pad(d.getHours());
+            const minute = pad(d.getMinutes());
+            return `${day} ${month} ${year} ${hour}:${minute}`;
+          },
+        },
+        {
+          format: "F",
+          label: "Long Date + Day of Week + Short Time",
+          formatter: (timestamp) => {
+            const d = new Date(timestamp);
+            const weekday = weekdayNames[d.getDay()];
+            const day = pad(d.getDate());
+            const month = monthNames[d.getMonth()];
+            const year = d.getFullYear();
+            const hour = pad(d.getHours());
+            const minute = pad(d.getMinutes());
+            return `${weekday}, ${day} ${month} ${year} ${hour}:${minute}`;
+          },
+        },
+        {
+          format: "t",
+          label: "Time Short",
+          formatter: (timestamp) => {
+            const d = new Date(timestamp);
+            const hour = pad(d.getHours());
+            const minute = pad(d.getMinutes());
+            return `${hour}:${minute}`;
+          },
+        },
+        {
+          format: "T",
+          label: "Time Long",
+          formatter: (timestamp) => {
+            const d = new Date(timestamp);
+            const hour = pad(d.getHours());
+            const minute = pad(d.getMinutes());
+            const second = pad(d.getSeconds());
+            return `${hour}:${minute}:${second}`;
+          },
+        },
+        {
+          format: "d",
+          label: "Date Short",
+          formatter: (timestamp) => {
+            const d = new Date(timestamp);
+            const day = pad(d.getDate());
+            const month = pad(d.getMonth() + 1);
+            const year = d.getFullYear();
+            return `${day}/${month}/${year}`;
+          },
+        },
+        {
+          format: "D",
+          label: "Date Long",
+          formatter: (timestamp) => {
+            const d = new Date(timestamp);
+            const day = pad(d.getDate());
+            const month = monthNames[d.getMonth()];
+            const year = d.getFullYear();
+            return `${day} ${month} ${year}`;
+          },
+        },
+        {
+          format: "R",
+          label: "Relative",
+          formatter: (timestamp) => {
+            const rtf = new Intl.RelativeTimeFormat("en", {
+              numeric: "auto",
+            });
+            const now = Date.now();
+            let duration = Math.floor((timestamp - now) / 1000);
+
+            const divisions = [
+              { amount: 60, unit: "second" },
+              { amount: 60, unit: "minute" },
+              { amount: 24, unit: "hour" },
+              { amount: 7, unit: "day" },
+              { amount: 4.34524, unit: "week" },
+              { amount: 12, unit: "month" },
+              { amount: Number.POSITIVE_INFINITY, unit: "year" },
+            ];
+
+            for (const division of divisions) {
+              if (Math.abs(duration) < division.amount) {
+                const value = Math.round(duration);
+                let out = rtf.format(value, division.unit);
+                if (Math.abs(value) === 1) {
+                  out = out.replace(/\b1\b/, "a");
+                  out = out.replace(/\b-1\b/, "a");
+                  if (division.unit === "hour") {
+                    out = out.replace(/\ba hour\b/, "an hour");
+                    out = out.replace(/\bin a hour\b/, "in an hour");
+                  }
+                }
+                return out;
+              }
+              duration /= division.amount;
+            }
+          },
+        },
+      ];
+
+      const buttonsDiv = document.getElementById("buttons");
+
+      for (const time of times) {
+        const button = document.createElement("button");
+        button.classList.add("time-button");
+        const label = document.createElement("label");
+        label.innerText = time.formatter(selectedDateTime * 1000);
+        button.appendChild(label);
+        buttonsDiv.appendChild(button);
+      }
+
+      function updateButtons() {
+        const buttons = document.querySelectorAll(".time-button");
+        buttons.forEach((button, index) => {
+          const time = times[index];
+          if (selectedDateTime) {
+            const formattedTime = time.formatter(selectedDateTime * 1000);
+            button.innerHTML = `${formattedTime}`;
+            button.addEventListener("click", () => {
+              navigator.clipboard.writeText(
+                `<t:${selectedDateTime}:${time.format}>`
+              );
+              button.innerHTML = `Copied!`;
+              setTimeout(() => {
+                button.innerHTML = `${formattedTime}`;
+              }, 1500);
+            });
+          } else {
+            button.innerHTML = `<label>${time.label}</label>`;
+          }
+        });
+      }
+    </script>
+  </body>
+</html>
